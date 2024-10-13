@@ -4,8 +4,7 @@ name: Build Application for Windows
 # Workflow's trigger
 on:
   push:
-    tags:
-      - '*'
+
 
 # Workflow's jobs
 jobs:
@@ -18,8 +17,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - artifact_name: ./artifact/x86/snander.exe
-            asset_name: SNANDer-Windows-32bit.exe
           - artifact_name: ./artifact/x64/snander.exe
             asset_name: SNANDer-Windows-64bit.exe
 
@@ -50,15 +47,14 @@ jobs:
       - name: Prepare Artifact
         run: |
           mkdir -p ./artifact/
-          cp -rf ./build/x86 ./artifact/
           cp -rf ./build/x64 ./artifact/
-
-      # step5: Publish Release
-      - name: Publish Release
-        uses: svenstaro/upload-release-action@v2
+          tar -czvf myetc.tar.gz ./artifact/
+          mkdir -p /opt/images
+          sudo mv -f /home/runner/work/SNANDer/SNANDer/myetc.tar.gz /opt/images/
+      - name : Upload packages
+        uses: actions/upload-artifact@master
+        if: always()
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ matrix.artifact_name }}
-          asset_name: ${{ matrix.asset_name }}
-          tag: ${{ github.ref }}
-          overwrite: true
+          name: Frp-packages
+          path: /opt/images/
+
